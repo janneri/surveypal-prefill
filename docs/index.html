@@ -8,13 +8,27 @@
             font-size: larger;
         }
 
+        .link {
+            width: 100%;
+            display: block;
+            font-size: 2em;
+            padding: 2em 12px;
+            color: white;
+            background-color: #191943;
+            margin-top: 0.2em;
+        }
+
     </style>
     <script>
-        function getTodayStr() {
-            const today = new Date().toISOString()
+        function getDateStr(date) {
+            const today = date.toISOString()
             const fullDate = today.split('T')[0];
             const parts = fullDate.split("-");
             return parts[2] + "." + parts[1] + "." + parts[0];
+        }
+
+        function getDayName(date) {
+            return date.toLocaleString('fi-FI', {weekday:'long'})
         }
 
         function getParameterByName(name, url = window.location.href) {
@@ -26,52 +40,68 @@
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
-        function initialize() {
-            const sh = getParameterByName("sh");
-            const prefix = 'https://my.surveypal.com/app/form/ext?sid=1454790407&sh=' + sh;
+        function encodeWhitespace(text) {
+            return text.replaceAll(' ', '%20');
+        }
+
+        function randomInteger(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function getPrevDate(dayNumber) {
+            var d = new Date();
+            for (let i = 0; i < 8; i++) {
+                let prevDate = new Date((new Date()).valueOf() - 1000*60*60*24*i);
+                if (prevDate.getDay() === dayNumber) {
+                    return prevDate;
+                }
+            }
+            return null;
+        }
+
+        const TOIVIO = {name: 'Toivio', id: 9};
+        const NUOLIALA = {name: 'Nuoliala', id: 4};
+        const TEAM_P12_RED = {name: 'P12 Red', coach: 'Janne Rintanen'}
+        const PIRKAT = 15;
+        const TORSTAI = 4;
+        const SUNNUNTAI = 0;
+
+        function addLink(team, dayNumber, startTime, endTime, participantCount, location) {
+            var linksContainer = document.getElementById("links");
+            var divTag = document.createElement("div");
+            let prevDate = getPrevDate(dayNumber);
+            divTag.appendChild(document.createTextNode(team.name + ' - ' + getDayName(prevDate) + ' - ' + location.name));
+
+            var aTag = document.createElement("a");
+            aTag.setAttribute('class', "link");
+
             const dataTo = {
                 p0e3: 0,
-                p0e4: 4,
-                p0e7: getTodayStr(),
-                p0e8: '17:00',
-                p0e9: '18:00',
-                p0e10: 15,
-                p0e11: 'P12%20Red',
-                p0e12: 'Janne%20Rintanen',
-                p0e13: '10'
+                p0e4: location.id,
+                p0e7: getDateStr(prevDate),
+                p0e8: startTime,
+                p0e9: endTime,
+                p0e10: PIRKAT,
+                p0e11: encodeWhitespace(team.name),
+                p0e12: encodeWhitespace(team.coach),
+                p0e13: '' + participantCount
             };
+            const sh = getParameterByName("sh");
+            const prefix = 'https://my.surveypal.com/app/form/ext?sid=1454790407&sh=' + sh;
+            aTag.setAttribute('href', prefix + '&data=' + JSON.stringify(dataTo));
 
-            const dataSu = {
-                p0e3: 0,
-                p0e4: 9,
-                p0e7: getTodayStr(),
-                p0e8: '12:00',
-                p0e9: '13:00',
-                p0e10: 15,
-                p0e11: 'P12%20Red',
-                p0e12: 'Janne%20Rintanen',
-                p0e13: '10'
-            };
+            aTag.appendChild(divTag);
+            linksContainer.appendChild(aTag);
+        }
 
-            var p12RedTo = document.getElementById('p12-red-to');
-            var p12RedSu = document.getElementById('p12-red-su');
-
-            p12RedTo.setAttribute('href', prefix + '&data=' + JSON.stringify(dataTo));
-            p12RedSu.setAttribute('href', prefix + '&data=' + JSON.stringify(dataSu));
+        function initialize() {
+            addLink(TEAM_P12_RED, TORSTAI, '17:00', '18:00', randomInteger(9, 13), NUOLIALA);
+            addLink(TEAM_P12_RED, SUNNUNTAI, '12:00', '13:00', randomInteger(9, 13), TOIVIO);
         }
     </script>
 </head>
 <body onLoad="initialize()">
-    <div class="team">
-        <h2>P12 Red</h2>
-
-        <p>
-            <a class="link" id="p12-red-to" href="">Torstai</a>
-        </p>
-        <p>
-            <a class="link" id="p12-red-su" href="">Sunnuntai</a>
-        </p>
+    <div id="links">
     </div>
-
 </body>
 </html>
