@@ -18,6 +18,10 @@
             margin-top: 0.2em;
         }
 
+        .ohje {
+            margin-top: 4em;
+        }
+
     </style>
     <script>
         function getDateStr(date) {
@@ -59,13 +63,23 @@
             return null;
         }
 
-        const TOIVIO = {name: 'Toivio', id: 9};
-        const NUOLIALA = {name: 'Nuoliala', id: 4};
+        const LIIKSA = {name: 'Vapaa-aikakeskus', id: 3, mainId: 2, fieldName: 'p0e5'};
+        const MONITOIMISALI = {name: 'Vapaa-aikakeskus monitoimisali', id: 4, mainId: 2, fieldName: 'p0e5'};
+        const TOIVIO = {name: 'Toivio', id: 9, mainId: 0, fieldName: 'p0e4'};
+        const NUOLIALA = {name: 'Nuoliala', id: 4, mainId: 0, fieldName: 'p0e4'};
+
+        const TEAM_P14 = {name: 'P14', coach: 'Marko Pääkkönen'}
         const TEAM_P12_RED = {name: 'P12 Red', coach: 'Janne Rintanen'}
         const TEAM_NAISET_HARRASTE = {name: 'Salibandy Naiset harraste ', coach: 'Niina Kuhlman'}
         const PIRKAT = 15;
+        const TIISTAI = 2;
         const TORSTAI = 4;
         const SUNNUNTAI = 0;
+
+        function linkPrefix() {
+            const sh = getParameterByName("sh");
+            return 'https://my.surveypal.com/app/form/ext?sid=1454790407&sh=' + sh;
+        }
 
         function addLink(team, dayNumber, startTime, endTime, participantCount, location) {
             var linksContainer = document.getElementById("links");
@@ -76,9 +90,8 @@
             var aTag = document.createElement("a");
             aTag.setAttribute('class', "link");
 
-            const dataTo = {
-                p0e3: 0,
-                p0e4: location.id,
+            const data = {
+                p0e3: location.mainId,
                 p0e7: getDateStr(prevDate),
                 p0e8: startTime,
                 p0e9: endTime,
@@ -87,9 +100,9 @@
                 p0e12: encodeWhitespace(team.coach),
                 p0e13: '' + participantCount
             };
-            const sh = getParameterByName("sh");
-            const prefix = 'https://my.surveypal.com/app/form/ext?sid=1454790407&sh=' + sh;
-            aTag.setAttribute('href', prefix + '&data=' + JSON.stringify(dataTo));
+            data[location.fieldName] = location.id;
+
+            aTag.setAttribute('href', linkPrefix() + '&data=' + JSON.stringify(data));
 
             aTag.appendChild(divTag);
             linksContainer.appendChild(aTag);
@@ -99,11 +112,78 @@
             addLink(TEAM_P12_RED, TORSTAI, '17:00', '18:00', randomInteger(9, 13), NUOLIALA);
             addLink(TEAM_P12_RED, SUNNUNTAI, '12:00', '13:00', randomInteger(9, 13), TOIVIO);
             addLink(TEAM_NAISET_HARRASTE, TORSTAI, '20:00', '21:00', randomInteger(9, 13), TOIVIO);
+            addLink(TEAM_P14, TIISTAI, '18:00', '19:00', randomInteger(20, 20), MONITOIMISALI);
+            addLink(TEAM_P14, TIISTAI, '19:00', '20:00', randomInteger(20, 20), LIIKSA);
+            addLink(TEAM_P14, TORSTAI, '17:30', '18:00', randomInteger(20, 20), MONITOIMISALI);
+            addLink(TEAM_P14, TORSTAI, '18:00', '19:00', randomInteger(20, 20), LIIKSA);
+            updateExampleLink();
+        }
+
+        function updateExampleLink() {
+            let exampleLink = document.getElementById("example_link");
+
+            const data = {
+                p0e3: document.getElementById("mainLocation").value,
+                p0e7: document.getElementById("pvm").value,
+                p0e8: document.getElementById("start").value,
+                p0e9: document.getElementById("end").value,
+                p0e10: PIRKAT,
+                p0e11: encodeWhitespace(document.getElementById("team").value),
+                p0e12: encodeWhitespace(document.getElementById("coach").value),
+                p0e13: document.getElementById("count").value
+            };
+
+            if (document.getElementById("mainLocation").value == "0") {
+                data.p0e4 = document.getElementById("location").value;
+            } else {
+                data.p0e5 = document.getElementById("location").value;
+            }
+            exampleLink.innerText = linkPrefix() + '&data=' + JSON.stringify(data);
         }
     </script>
 </head>
 <body onLoad="initialize()">
-    <div id="links">
+    <div id="links"></div>
+
+    <div class="ohje">
+        <h3>Linkin muodostaminen omalle joukkueelle?</h3>
+        <p>
+            Voit kokeilla oman joukkueen linkin muodostamista muuttamalla tiedot alle ja katsomalla millainen linkki siitä generoituu alhaalle.
+            Generoituneen linkin voit laittaa esim. puhelimen selaimen suosikkeihin/kirjanmerkiksi.
+
+            Päivämäärän joutuu korjaamaan joka kerta kun lomakkeelle hyppää, jos generoit linkin itse.
+            Tämän sivun yläosan linkeissä päivämäärä asettuu automaattisesti oikein (koska se päätellään nykyhetkestä ohjelmallisesti).
+        </p>
+        <select id="mainLocation" onchange="updateExampleLink()">
+            <option value="0">Koulujen liikuntasalit</option>
+            <option value="2">Liiksa</option>
+        </select>
+        <select id="location" onchange="updateExampleLink()">
+            <option value="0">Kurikankulman koulu, liikuntasali</option>
+            <option value="1">Nuoliala-keskus, koko liikuntasali</option>
+            <option value="2">Nuoliala-keskus, liikuntasali 1. osa (puolapuiden pääty)</option>
+            <option value="3">Nuoliala-keskus, liikuntasali 2. osa (keskiosa)</option>
+            <option value="4">Nuoliala-keskus, liikuntasali 3. osa (kiipeilyseinän pääty)</option>
+            <option value="5">Soljan lastentalo, liikuntasali</option>
+            <option value="6">Suupanniityn koulu, puolikas liikuntasali</option>
+            <option value="7">Suupanniityn koulu, näyttämö</option>
+            <option value="8">Suupanniityn koulu, puolikas liikuntasali + näyttämö</option>
+            <option value="9">Toivion koulu, liikuntasali</option>
+            <option value="0">Liiksa - A-osa (kahvila)</option>
+            <option value="1">Liiksa - B-osa (keski)</option>
+            <option value="2">Liiksa - C-osa (käytävän pääty)</option>
+            <option value="3">Liiksa - koko sali</option>
+            <option value="4">Liiksa - monitoimisali</option>
+        </select>
+        <input id="coach" placeholder="vastuuhenkilo" value="Ville Vastuuhenkilo" oninput="updateExampleLink()" />
+        <input id="pvm" value="03.10.2021" oninput="updateExampleLink()" />
+        <input id="start" placeholder="alkuaika" value="17:00" oninput="updateExampleLink()" />
+        <input id="end" placeholder="loppuaika" value="18:00" oninput="updateExampleLink()" />
+        <input id="team" value="P12 Blue" oninput="updateExampleLink()" />
+        <input id="count" value="17" oninput="updateExampleLink()" />
+
+        <p id="example_link">
+        </p>
     </div>
 </body>
 </html>
