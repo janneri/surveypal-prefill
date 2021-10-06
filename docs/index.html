@@ -62,6 +62,7 @@
         const TOIVIO = {name: 'Toivio', id: 9};
         const NUOLIALA = {name: 'Nuoliala', id: 4};
         const TEAM_P12_RED = {name: 'P12 Red', coach: 'Janne Rintanen'}
+        const TEAM_NAISET_HARRASTE = {name: 'Salibandy Naiset harraste ', coach: 'Niina Kuhlman'}
         const PIRKAT = 15;
         const TORSTAI = 4;
         const SUNNUNTAI = 0;
@@ -97,6 +98,7 @@
         function initialize() {
             addLink(TEAM_P12_RED, TORSTAI, '17:00', '18:00', randomInteger(9, 13), NUOLIALA);
             addLink(TEAM_P12_RED, SUNNUNTAI, '12:00', '13:00', randomInteger(9, 13), TOIVIO);
+            addLink(TEAM_NAISET_HARRASTE, TORSTAI, '20:00', '21:00', randomInteger(9, 13), TOIVIO);
         }
     </script>
 </head>
